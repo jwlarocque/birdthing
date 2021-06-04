@@ -1,44 +1,62 @@
 <script context="module">
     let birdData;
 
+
+    $: console.log(birdData);
+
     export async function load({ page, fetch, session, context }) {
-		const myHeaders = new Headers({
-			"content-type": "application/json"
-		});
-		const res = await fetch(
-			'/birds.json', 
-			{
-				headers: {
-					"content-type": "application/json"
-				},
-				method: "GET",
-				body: page.query
-			}
-		);
+        const myHeaders = new Headers({
+            "content-type": "application/json"
+        });
 
-		if (res.ok) {
-			return {
-				props: {
-					birdData: await res.json()
-				}
-			};
-		}
+        const res = await fetch(
+            '/birds.json', 
+            {
+                headers: {
+                    "content-type": "application/json"
+                },
+                method: "GET",
+                body: page.query
+            }
+        );
 
-		return {
-			status: res.status,
-			error: new Error(`Could not load ${JSON.stringify(page)}`)
-		};
-	}
+        if (res.ok) {
+            return {
+                props: {
+                    birdData: await res.json()
+                }
+            };
+        }
+
+        return {
+            status: res.status,
+            error: new Error(`Could not load ${JSON.stringify(page)}`)
+        };
+    }
 
 </script>
 
 <script>
+    import BirdList from "$lib/components/BirdList.svelte";
+    import BirdDetail from "$lib/components/BirdDetail.svelte";
     export let birdData;
+    let selectedIndex;
 </script>
 
 
 <svelte:head>
-    <title>Bird {birdData["band_num"] ? birdData["band_num"] : "Loading..."}</title>
+    <title>Birds</title>
 </svelte:head>
 
-<p>{birdData ? JSON.stringify(birdData) : "..."}</p>
+{#if birdData}
+    <div class="horiz-content">
+        <BirdList birds={birdData} bind:selectedIndex={selectedIndex}></BirdList>
+        <BirdDetail bird={birdData[selectedIndex]}></BirdDetail>
+    </div>
+{:else}
+    <p>...</p>
+{/if}
+
+<style>
+    
+</style>

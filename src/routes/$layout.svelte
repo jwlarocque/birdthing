@@ -6,7 +6,7 @@
 
 <main>
     <Nav/>
-	<slot/>
+    <slot/>
 </main>
 
 <style>
@@ -51,5 +51,22 @@
         linear-gradient(to top left, rgba(7,65,39, 1), transparent),
         linear-gradient(to top right, rgba(1,18,55, 0.8), transparent);
         background-blend-mode: screen;
+    }
+
+    :global(.horiz-content) {
+        display: flex;
+        flex-direction: row;
+    }
+
+    :global(.horiz-content>*) {
+        margin: 0 0.5em;
+    }
+
+    :global(.horiz-content>*:first-child) {
+        margin: 0 0.5em 0 0;
+    }
+
+    :global(.horiz-content>*:last-child) {
+        margin: 0 0 0 0.5em;
     }
 </style>
