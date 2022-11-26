@@ -17,7 +17,8 @@ export class DB {
     init() {
         this.pool = new Pool({
             database: "birdthing",
-            password: ""
+            user: "postgres",
+            password: "Joebob123"
         })
     }
 
