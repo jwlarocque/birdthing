@@ -1,8 +1,21 @@
-export async function loadBird(id:number) {
+export type Bird = {
+    id: number;
+    band_num?: string;
+    owner_id?: number;
+    male?: boolean;
+    date_of_birth?: string;
+    date_of_death?: string;
+    nick?: string;
+    notes?: string;
+    father_id?: number;
+    mother_id?: number;
+}
+
+export async function loadBird(id:number): Promise<Bird | null> {
     if (id == null) {
         return null;
     }
-    const res = await fetch(`api/birds/${id}`);
+    const res = await fetch(`/api/birds/${id}`);
     const json = await res.json();
     if (res.ok) {
         return json;
@@ -22,9 +35,7 @@ export async function loadBird(id:number) {
 // nick?:string,
 // owner_id?:number
 
-export async function searchBirds(args:object) {
-    console.log(args);
-    
+export async function searchBirds(args:object): Promise<Bird[] | null> {
     let url_params = ""
     if (args.band_num) {
         url_params += `band_num=${args.band_num}&`;
@@ -35,18 +46,18 @@ export async function searchBirds(args:object) {
     const res = await fetch(`api/birds?` + url_params)
     const json = await res.json();
     if (res.ok) {
-        return json;
+        return json.birds;
     } else {
         throw new Error(json.detail);
     }
 }
 
-export async function postBird(bird:object) {
+export async function postBird(bird:Bird): Promise<object | null> {
     if (bird.date_of_death != null && !bird.date_of_death) {
-        bird.date_of_death = null;
+        bird.date_of_death = undefined;
     }
     if (bird.date_of_birth != null && !bird.date_of_birth) {
-        bird.date_of_birth = null;
+        bird.date_of_birth = undefined;
     }
     const res = await fetch(
         `api/birds`,

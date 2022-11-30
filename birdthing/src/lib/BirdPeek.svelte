@@ -45,7 +45,7 @@
 {:then bird}
     {#if bird != null}
         <div class={bird.male ? "bird male" : "bird female"}>
-            <BirdName band_num={bird.band_num} nick={bird.nick}/>
+            <BirdName {bird}/>
             <p>{lifetimeString(bird.date_of_birth, bird.date_of_death)}</p>
             {#if recursion_level > 0}
                 <div id="parents">

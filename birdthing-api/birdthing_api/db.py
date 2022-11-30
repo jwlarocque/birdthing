@@ -6,7 +6,7 @@ from starlite.plugins.sql_alchemy import SQLAlchemyConfig, SQLAlchemyPlugin, SQL
 
 Base = declarative_base()
 sqla_config = SQLAlchemyConfig(
-    connection_string="postgresql+psycopg://postgres:Joebob123@localhost/birdthing",
+    connection_string="postgresql+psycopg2://postgres:Joebob123@localhost/birdthing",
     use_async_engine=False
 )
 sqla_plugin = SQLAlchemyPlugin(config=sqla_config)

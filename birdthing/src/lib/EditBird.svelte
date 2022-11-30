@@ -23,6 +23,8 @@
             return searchBirds({"band_num": options, "male": male});
         }
     }
+
+    let itemFilter = (label, filterText, option) => true;
 </script>
 
 <style>
@@ -79,7 +81,7 @@
 
     button {
         font-size: 1em;
-        padding: 0.6em 2em;
+        padding: 0.6em 1.2em;
         box-sizing: border-box;
         width: fit-content;
         border: none;
@@ -159,6 +161,7 @@
                 <span>Father</span>
                 <Select
                     loadOptions={searchBirdsSex(true)}
+                    itemFilter={itemFilter}
                     optionIdentifier={"id"}
                     getSelectionLabel={(option) => option.band_num}
                     getOptionLabel={(option) => option.band_num}
@@ -170,6 +173,7 @@
                 <span>Mother</span>
                 <Select
                     loadOptions={searchBirdsSex(false)}
+                    itemFilter={itemFilter}
                     optionIdentifier={"id"}
                     getSelectionLabel={(option) => option.band_num}
                     getOptionLabel={(option) => option.band_num + (option.nick ? " " + option.nick : "!")}

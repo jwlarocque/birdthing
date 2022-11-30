@@ -3,7 +3,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from sqlalchemy import select, Column, ForeignKey, Integer, String, Boolean, Date
+from sqlalchemy import select, func, Column, ForeignKey, Integer, String, Boolean, Date
 from sqlalchemy.orm import Session, Mapped, relationship, selectinload
 
 from starlite import Controller, HTTPException, get, post, Parameter
@@ -28,7 +28,25 @@ class Bird(db.Base):
     notes: Mapped[str] = Column(String)
     father_id: Mapped[int] = Column(Integer, ForeignKey("bird.id"))
     mother_id: Mapped[int] = Column(Integer, ForeignKey("bird.id"))
+
+class BirdModel(BaseModel):
+    class Config:
+        orm_mode = True
     
+    id: int
+    band_num: Optional[str]
+    owner_id: Optional[int]
+    male: Optional[bool]
+    date_of_birth: Optional[date]
+    date_of_death: Optional[date]
+    nick: Optional[str]
+    note: Optional[str]
+    father_id: Optional[int]
+    mother_id: Optional[int]
+
+class PaginatedBirds(BaseModel):
+    birds: List[BirdModel]
+    total: int
 
 CreateBirdDTO = db.dto_factory("CreateBirdDTO", Bird, exclude=["id"])
 
@@ -66,7 +84,7 @@ class BirdController(Controller):
         stmt = select(Bird)
 
         if band_num is not None:
-            stmt = stmt.where(Bird.band_num.icontains(band_num))
+            stmt = stmt.where(Bird.band_num.ilike("%" + band_num + "%"))
         if owner_id is not None:
             stmt = stmt.where(Bird.owner_id == owner_id)
         if male is not None:
@@ -80,19 +98,22 @@ class BirdController(Controller):
         if dod_to is not None:
             stmt = stmt.where(Bird.date_of_death <= dod_to)
         if nick is not None:
-            stmt = stmt.where(Bird.nick.icontains(nick))
+            stmt = stmt.where(Bird.nick.ilike("%" + nick + "%"))
         if father_id is not None:
             stmt = stmt.where(Bird.father_id == father_id)
         if mother_id is not None:
             stmt = stmt.where(Bird.mother_id == mother_id)
 
+        total = db_session.scalar(stmt.with_only_columns(func.count(Bird.id)))
+
         stmt = stmt.limit(page_size)
         stmt = stmt.offset(page * page_size)
 
         result = db_session.scalars(stmt)
-        bird: List[Bird] = result.all()
-        return bird
-    
+        birds: List[BirdModel] = [BirdModel.from_orm(bird) for bird in result.all()]
+
+        return PaginatedBirds(birds=birds, total=total)
+
     @get(path="/{id:int}")
     def get_bird(self, id: int, db_session: Session) -> Bird:
         result = db_session.scalars(select(Bird).where(Bird.id == id))

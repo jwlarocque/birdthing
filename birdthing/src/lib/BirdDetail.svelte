@@ -6,6 +6,7 @@
 	import Loading from "./Loading.svelte";
 
     export let selectedId:number|null = null;
+    export let editable = false;
 
     const parent_depth = 2;
 </script>
@@ -55,9 +56,9 @@
 <div id="main">
     {#if selectedId != null}
         {#await loadBird(selectedId)}
-            <p>Loading...</p>
+            <Loading/>
         {:then bird}
-            <BirdName band_num={bird.band_num} nick={bird.nick}/>
+            <BirdName {bird} {editable}/>
             <div>
                 <span class="miniheader">Born: </span>
                 <span>{bird.date_of_birth ? bird.date_of_birth : "unknown"}</span>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from "$app/stores";
     import Grid from "gridjs-svelte";
     import h from "gridjs-svelte";
     import { RowSelection } from "gridjs/plugins/selection";
@@ -43,6 +44,21 @@
             hidden: false
         },
     ];
+
+    // TODO: replace hardcoded server
+    let grid_server = {
+        url: "api/birds/",
+        total: data => data.total,
+        then: data => data.birds
+    }
+
+    let grid_pagination = {
+        enabled: true,
+        limit: 10,
+        server: {
+            url: (prev, page, limit) => `${prev}?page_size=${limit}&page=${page}`
+        }
+    }
     
 </script>
 
@@ -50,7 +66,7 @@
     <!-- <div id="controls">
     </div> -->
     {#if birds}
-        <Grid data={birds} columns={grid_cols} sort={true} on:rowClick={handleRowClick}/>
+        <Grid server={grid_server} pagination={grid_pagination} columns={grid_cols} sort={true} on:rowClick={handleRowClick}/>
     {:else}
         <p>Loading...</p>
     {/if}
