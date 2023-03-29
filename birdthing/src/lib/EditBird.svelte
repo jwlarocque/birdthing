@@ -159,6 +159,7 @@
         <div class="soft-row">
             <div class="parent-select">
                 <span>Father</span>
+                <!-- TODO: upgrade to v5 -->
                 <Select
                     loadOptions={searchBirdsSex(true)}
                     itemFilter={itemFilter}

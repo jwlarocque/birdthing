@@ -1,7 +1,10 @@
 <script lang="ts">
-    let band_num:string;
-    let nick:string;
-    export let item = undefined;	
+	import type { Bird } from "./bird";
+
+
+    let band_num:string | undefined;
+    let nick:string | undefined;
+    export let item:Bird;	
 	export let isActive = false;
     export let isFirst = false;
 	export let isHover = false;
@@ -27,20 +30,26 @@
 </script>
 
 <style>
-    #name {
-        padding: 0.8em;
+    #grid {
+        padding: 1em;
         margin: 0;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        flex-direction: row;
     }
 
-    #name.active {
+    #grid.active {
         border-left: 4px solid var(--emph-light);
+        padding-left: calc(1em - 4px);
     }
 
-    #name.hover, #name.active {
+    #grid.hover, #grid.active {
         background: var(--bg-light);
     }
 
-    #name > * {
+    #grid > * {
+        flex: 1;
         margin: 0;
     }
 
@@ -55,7 +64,12 @@
     }
 </style>
 
-<p id="name" class="{itemClasses}">
-    <span id="bandnum">{band_num}</span>
-    <span id="nick">{nick ? "\"" + nick + "\"" : ""}</span>
-</p>
+<div on:click on:keypress id="grid" class="{itemClasses}">
+    <div class="gridrow">
+        <span id="bandnum">{band_num}</span>
+        <span id="nick">{nick ? "\"" + nick + "\"" : ""}</span>
+    </div>
+    <span>{item.date_of_birth}</span>
+    <span>{item.date_of_death ? item.date_of_death : ""}</span>
+    <span>{item.male ? "Male": "Female"}</span>
+</div>

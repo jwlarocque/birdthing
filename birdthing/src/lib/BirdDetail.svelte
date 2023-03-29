@@ -14,9 +14,6 @@
 <style>
     #main{
         height: 100%;
-        background-color: #fff;
-        border-radius: var(--main-radius);
-        box-shadow: var(--main-shadow);
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
@@ -53,7 +50,7 @@
     }
 </style>
 
-<div id="main">
+<div id="main" class="card">
     {#if selectedId != null}
         {#await loadBird(selectedId)}
             <Loading/>
@@ -73,14 +70,23 @@
                 <span class="miniheader">Sex: </span>
                 <span>{bird.male != null ? bird.male ? "Male" : "Female" : "Unknown"}</span>
             </div>
+            {#if bird.notes}
+                <section>
+                    <header>Notes</header>
+                    <div id="notes">
+                            <p>{bird.notes}</p>
+                    </div>
+                </section>
+            {/if}
             <section>
                 <header>Ancestry</header>
                 <div id="ancestry">
                     {#if bird.father_id == null && bird.mother_id == null}
                         <p>Unknown</p>
+                    {:else}
+                        <BirdPeek id={bird.father_id} recursion_level={parent_depth - 1}/>
+                        <BirdPeek id={bird.mother_id} recursion_level={parent_depth - 1}/>
                     {/if}
-                    <BirdPeek id={bird.father_id} recursion_level={parent_depth - 1}/>
-                    <BirdPeek id={bird.mother_id} recursion_level={parent_depth - 1}/>
                 </div>
             </section>
         {:catch error}

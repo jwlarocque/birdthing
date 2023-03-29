@@ -2,11 +2,11 @@
     import type {Bird} from '$lib/bird';
     export let bird:Bird;
     export let editable:boolean = false;
+    export let link:boolean = true;
 
     $: birdPath = `/birds/${bird.id}`
     $: console.log(birdPath);
 
-    let editing = false;
 </script>
 
 <style>
@@ -46,7 +46,7 @@
         <div id="clickable">
             <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="0 0 48 48" height="1.2em"><path fill="rgb(145, 141, 134)" d="M9 39h2.2l22.15-22.15-2.2-2.2L9 36.8Zm30.7-24.3-6.4-6.4 2.1-2.1q.85-.85 2.1-.85t2.1.85l2.2 2.2q.85.85.85 2.1t-.85 2.1Zm-2.1 2.1L12.4 42H6v-6.4l25.2-25.2Zm-5.35-1.05-1.1-1.1 2.2 2.2Z"/></svg>
         </div>
-    {:else}
+    {:else if link}
         <a id="clickable" title="View in New Tab" href={birdPath}>
             <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="10 10 26 26" height="0.8em"><path fill="rgb(145, 141, 134)" d="m12.4 35.7-2.1-2.1L30.9 13H12v-3h24v24h-3V15.1Z"/></svg>
         </a>

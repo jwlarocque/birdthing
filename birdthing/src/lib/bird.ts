@@ -1,4 +1,11 @@
+import { supabase } from "$lib/supabase";
+
+const TEXT_SEARCH_PROPS = ["band_num", "nick"];
+const DATE_PROPS = ["date_of_birth", "date_of_death"]
+const DEFAULT_COUNT = 10;
+
 export type Bird = {
+    [key: string]: number | string | boolean | undefined;
     id: number;
     band_num?: string;
     owner_id?: number;
@@ -12,64 +19,52 @@ export type Bird = {
 }
 
 export async function loadBird(id:number): Promise<Bird | null> {
-    if (id == null) {
+    let {data: bird, error} = await supabase.from("bird").select("*").eq("id", id);
+    if (error) {
+        console.error(error);
         return null;
     }
-    const res = await fetch(`/api/birds/${id}`);
-    const json = await res.json();
-    if (res.ok) {
-        return json;
-    } else {
-        throw new Error(json.detail);
-    }
+    return bird && bird.length ? bird[0] as Bird : null;
 }
 
-// band_num?:string,
-// dob_from?:string,
-// dob_to?:string,
-// dod_from?:string,
-// dod_to?:string,
-// father_id?:number,
-// mother_id?:number,
-// male?:boolean,
-// nick?:string,
-// owner_id?:number
+export async function searchBirds(args:any): Promise<Bird[] | null> {
+    console.log(args); // TODO: remove debug
+    // defaults
+    if (!Object.hasOwn(args, "count")) {
+        args["count"] = DEFAULT_COUNT
+    }
 
-export async function searchBirds(args:object): Promise<Bird[] | null> {
-    let url_params = ""
-    if (args.band_num) {
-        url_params += `band_num=${args.band_num}&`;
+    let query = supabase.from("bird").select("*")
+    for (const property in args) {
+        // TODO: function lookup instead of all these conditionals
+        // TODO: OR with search on nickname
+        if (TEXT_SEARCH_PROPS.includes(property)) {
+            query = query.ilike(property, "%" + args[property] + "%");
+        } else if (property === "count") {
+            query = query.limit(args["count"])
+        } else {
+            query = query.eq(property, args[property]);
+        }
     }
-    if (args.male != null) {
-        url_params += `male=${args.male}&`;
+    console.log(query);
+    let {data: birds, error} = await query;
+    if (error) {
+        console.error(error);
+        return null;
     }
-    const res = await fetch(`api/birds?` + url_params)
-    const json = await res.json();
-    if (res.ok) {
-        return json.birds;
-    } else {
-        throw new Error(json.detail);
-    }
+    return birds as Bird[];
 }
 
-export async function postBird(bird:Bird): Promise<object | null> {
-    if (bird.date_of_death != null && !bird.date_of_death) {
-        bird.date_of_death = undefined;
+export async function postBird(bird:Bird) {
+    for (const date_prop of DATE_PROPS) {
+        if (Object.hasOwn(bird, date_prop) && bird[date_prop] === "") {
+            delete bird[date_prop];
+        }
     }
-    if (bird.date_of_birth != null && !bird.date_of_birth) {
-        bird.date_of_birth = undefined;
+    let query = supabase.from("bird").insert([bird]);
+    const {data, error} = await query;
+    if (error) {
+        console.error(error);
     }
-    const res = await fetch(
-        `api/birds`,
-        {
-            method: "Post",
-            headers: {
-                "Content-Type": "applicaton/json"},
-            body: JSON.stringify(bird)});
-    const json = await res.json();
-    if (res.ok) {
-        return json;
-    } else {
-        throw new Error(json.detail);
-    }
+    // TODO: update application birds after a new one is created
 }

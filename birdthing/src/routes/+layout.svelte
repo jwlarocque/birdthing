@@ -18,6 +18,11 @@
         padding: 0;
         font-family: 'Merriweather', 'Arial';
         background-color: var(--bg-light);
+        min-height: calc(100vh - 4em);
+    }
+
+    :global(input) {
+        font-family:  'Merriweather', 'Arial';
     }
 
     :global(body) {
@@ -34,6 +39,31 @@
         flex-direction: row;
         justify-content: space-between;
     }
+
+    :global(.card) {
+        background-color: #fff;
+        border-radius: var(--main-radius);
+        box-shadow: var(--main-shadow);
+    }
+
+    :global(.col) {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    :global(.hidden) {
+        visibility: hidden;
+    }
+
+    /* TODO: better differentation between col items */
+    /* :global(.col > *) {
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    :global(.col > *:last-child) {
+        border-bottom: none;
+    } */
 </style>
 
 <nav>

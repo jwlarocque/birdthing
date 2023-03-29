@@ -2,27 +2,27 @@
     import {fly} from 'svelte/transition';
     import {flip} from 'svelte/animate';
 
+    import {supabase} from '$lib/supabase.js';
+
     import Loading from '$lib/Loading.svelte';
 
     import BirdDetail from '$lib/BirdDetail.svelte';
     import BirdList from '$lib/BirdList.svelte';
 	import EditBird from '$lib/EditBird.svelte';
+	import type { Bird } from '$lib/bird';
 
-    let birds = [];
+    let birds:Bird[] = [];
 
-    let selectedId = null;
+    let selectedId:number;
 
     let showNew = false;
 
     // TODO: move to to .ts file
     async function loadBirds() {
-        const res = await fetch("api/birds");
-        const json = await res.json();
-        if (res.ok) {
-            birds = await json;
-        } else {
-            throw new Error(birds);
-        }
+        const {data} = await supabase.from("bird").select();
+        console.log(data);
+        birds = data as Bird[] ?? [];
+        return birds;
     }
 </script>
 
@@ -72,6 +72,7 @@
         {#await loadBirds()}
             <Loading/>
         {:then}
+            <!-- TODO: put loading indicator within list/card -->
             <BirdList bind:birds bind:selectedId></BirdList>
         {:catch error}
             <p>error: {error}</p>
