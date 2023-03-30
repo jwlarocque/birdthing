@@ -27,21 +27,22 @@ export async function loadBird(id:number): Promise<Bird | null> {
     return bird && bird.length ? bird[0] as Bird : null;
 }
 
+// TODO: consider pagination (not needed for now)
 export async function searchBirds(args:any): Promise<Bird[] | null> {
     console.log(args); // TODO: remove debug
     // defaults
     if (!Object.hasOwn(args, "count")) {
-        args["count"] = DEFAULT_COUNT
+        args["count"] = DEFAULT_COUNT;
     }
 
-    let query = supabase.from("bird").select("*")
+    let query = supabase.from("bird").select("band_num,male,date_of_birth,date_of_death,nick");
     for (const property in args) {
         // TODO: function lookup instead of all these conditionals
         // TODO: OR with search on nickname
         if (TEXT_SEARCH_PROPS.includes(property)) {
             query = query.ilike(property, "%" + args[property] + "%");
         } else if (property === "count") {
-            query = query.limit(args["count"])
+            query = query.limit(args["count"]);
         } else {
             query = query.eq(property, args[property]);
         }

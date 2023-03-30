@@ -6,11 +6,26 @@
 	import Checkboxes from "./Checkboxes.svelte";
 	import SelectBirdName from "./SelectBirdName.svelte";
     import Loading from "./Loading.svelte";
+    import uFuzzy from "@leeoniya/ufuzzy";
 
     export let birds:Array<Bird>;
+    $: haystack = birds.map((bird) => bird.band_num + (bird.nick || ""));
+    let needle = "";
+    let uf = new uFuzzy({})
+    $: visible = visibleFromSearch(needle);
     let selected:Bird;
     export let selectedId:Number|null = null;
     $: selectedId = selected ? selected.id : null;
+
+    function visibleFromSearch(needle:string) {
+        let results = uf.search(haystack, needle);
+        if (!results || !results[2] || !results[0]) {
+            return birds;
+        }
+        // weird output format.  TODO: faster way?
+        let visible = results[2].map((order) => results[0][order]).map((idx) => birds[idx]);
+        return visible
+    }
 
     // owner_id?: number;
     // male?: boolean;
@@ -103,7 +118,12 @@
             <p slot="label">Show Columns</p>
         </Checkboxes>
         <div class="card">
-            <input class="searchbox" type="text" placeholder="Search"/>
+            <input
+                class="searchbox"
+                type="text"
+                placeholder="Search"
+                bind:value={needle}
+            />
         </div>
     </div>
     <div class="card grid" style="grid-template-columns: repeat({1 + selected_columns.length}, 1fr)">
@@ -111,7 +131,7 @@
         {#each selected_columns as col_name}
             <p class="grid-header">{col_name}</p>
         {/each}
-        {#each birds as bird}
+        {#each visible as bird}
         <!-- TODO: something clever with selected_columns so these can be combined -->
             <div
                 class={selected && bird.id === selected.id ? "selected band-num": "band-num"}
