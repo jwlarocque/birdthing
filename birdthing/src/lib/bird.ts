@@ -28,14 +28,14 @@ export async function loadBird(id:number): Promise<Bird | null> {
 }
 
 // TODO: consider pagination (not needed for now)
-export async function searchBirds(args:any): Promise<Bird[] | null> {
+export async function searchBirds(args:any): Promise<Bird[]> {
     console.log(args); // TODO: remove debug
     // defaults
     if (!Object.hasOwn(args, "count")) {
         args["count"] = DEFAULT_COUNT;
     }
 
-    let query = supabase.from("bird").select("band_num,male,date_of_birth,date_of_death,nick");
+    let query = supabase.from("bird").select("id,band_num,male,date_of_birth,date_of_death,nick");
     for (const property in args) {
         // TODO: function lookup instead of all these conditionals
         // TODO: OR with search on nickname
@@ -47,11 +47,12 @@ export async function searchBirds(args:any): Promise<Bird[] | null> {
             query = query.eq(property, args[property]);
         }
     }
+    query = query.order("updated_at", {ascending: false});
     console.log(query);
     let {data: birds, error} = await query;
     if (error) {
         console.error(error);
-        return null;
+        return [];
     }
     return birds as Bird[];
 }

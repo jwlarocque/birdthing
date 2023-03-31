@@ -4,4 +4,4 @@
     export let data;
 </script>
 
-<BirdDetail selectedId={data.slug} editable={true}/>
+<BirdDetail selectedId={data.slug} editable={true} link={false}/>

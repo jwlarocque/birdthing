@@ -42,6 +42,7 @@
 
     :global(.card) {
         background-color: #fff;
+        border: none;
         border-radius: var(--main-radius);
         box-shadow: var(--main-shadow);
     }
@@ -54,6 +55,31 @@
     
     :global(.hidden) {
         visibility: hidden;
+    }
+
+    :global(button, .button) {
+        display: flex;
+        align-items: center;
+        border-radius: var(--main-radius);
+        border: 1px solid var(--field-border-light);
+        outline: none;
+        font-family: "Merriweather", "Arial";
+        font-size: 1em;
+        padding: 0.5em 1em;
+        box-sizing: border-box;
+        width: fit-content;
+        height: fit-content;
+        margin: auto 0;
+        cursor: pointer;
+        background-color: transparent;
+    }
+
+    :global(button.card, .button.card) {
+        padding: 1em;
+    }
+
+    :global(button > svg, .button > svg) {
+        margin-right: 0.5em;
     }
 
     /* TODO: better differentation between col items */

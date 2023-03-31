@@ -9,7 +9,8 @@
 
     const {form, data} = createForm({
         onSubmit: async (values) => {
-            postBird(values);
+            await postBird(values);
+            
         },
     });
 

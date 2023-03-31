@@ -2,18 +2,29 @@
 	import { error } from "@sveltejs/kit";
     import BirdPeek from "./BirdPeek.svelte";
     import BirdName from "./BirdName.svelte";
-    import { loadBird } from "./bird";
+    import { loadBird, type Bird } from "./bird";
 	import Loading from "./Loading.svelte";
 
-    export let selectedId:number|null = null;
-    export let editable = false;
 
+    let bird:Bird|null;
+    $: birdPath = bird ? `/birds/${bird.id}` : "";
+    export let selectedId:number|null = null;
+    $: updateBird(selectedId)
+    export let editable = true;
+    export let link = true;
+    let editing = false;
     const parent_depth = 2;
+
+    async function updateBird(id:number|null) {
+        if (id) {
+            bird = await loadBird(id);
+        }
+    }
 </script>
 
 <style>
-    #main{
-        height: 100%;
+    #main {
+        min-height: 6em;
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
@@ -42,6 +53,44 @@
         color: var(--section-header-light);
     }
 
+    
+    #name {
+        margin: 1em;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    #name > a {
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    #bandnum {
+        font-size: 1.2em;
+        margin-right: 0.2em;
+    }
+
+    #nick {
+        color: var(--deemph-light);
+    }
+
+    #top-buttons {
+        display: flex;
+        flex-direction: row;
+        gap: 1em;
+    }
+
+    #clickable {
+        height: 100%;
+        display: flex;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: inline-block;
+    }
+
     #ancestry {
         display: flex;
         flex-direction: row;
@@ -52,10 +101,30 @@
 
 <div id="main" class="card">
     {#if selectedId != null}
-        {#await loadBird(selectedId)}
-            <Loading/>
-        {:then bird}
-            <BirdName {bird} {editable}/>
+        {#if bird}
+            <div id="name">
+                <a id="clickable" title="View in New Tab" href={birdPath}>
+                    <span id="bandnum">{bird.band_num}</span>
+                    <span id="nick">{bird.nick ? "\"" + bird.nick + "\"" : ""}</span>
+                </a>
+                <div id="top-buttons">
+                    {#if editable}
+                        {#if editing}
+                            <button><span>Save</span></button>
+                        {/if}
+                        <button on:click={() => editing = !editing}>
+                            <!-- <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="0 0 48 48" height="1.2em"><path fill="rgb(145, 141, 134)" d="M9 39h2.2l22.15-22.15-2.2-2.2L9 36.8Zm30.7-24.3-6.4-6.4 2.1-2.1q.85-.85 2.1-.85t2.1.85l2.2 2.2q.85.85.85 2.1t-.85 2.1Zm-2.1 2.1L12.4 42H6v-6.4l25.2-25.2Zm-5.35-1.05-1.1-1.1 2.2 2.2Z"/></svg> -->
+                            <span>{editing ? "Cancel" : "Edit"}</span>
+                        </button>
+                    {/if}
+                    {#if link}
+                        <a class="button" id="clickable" title="View in New Tab" href={birdPath} target="_blank" rel="noopener noreferrer">
+                            <!-- <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="10 10 26 26" height="0.8em"><path fill="rgb(145, 141, 134)" d="m12.4 35.7-2.1-2.1L30.9 13H12v-3h24v24h-3V15.1Z"/></svg> -->
+                            <span>Open in New Tab</span>
+                        </a>
+                    {/if}
+                </div>
+            </div>
             <div>
                 <span class="miniheader">Born: </span>
                 <span>{bird.date_of_birth ? bird.date_of_birth : "unknown"}</span>
@@ -89,9 +158,9 @@
                     {/if}
                 </div>
             </section>
-        {:catch error}
-            <p>Error: {error.message}</p>
-        {/await}
+        {:else}
+            <Loading/>
+        {/if}
     {:else}
         <p id="unselected">Select a Bird</p>
     {/if}

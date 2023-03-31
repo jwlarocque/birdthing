@@ -22,6 +22,7 @@
         display: flex;
         flex-direction: row;
         padding: 0 1em;
+        gap: 1em;
     }
 
     .row > svg {
@@ -64,7 +65,7 @@
 <div id="main" class={show ? "" : "card"} on:click={() => show = !show} on:keypress={() => show = !show}>
     <div class="row toggler">
         <slot name="label"></slot>
-        <svg class={show ? "flipper flipped" : "flipper"} xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 96 960 960" width="2em"><path d="M480 711 240 471l43-43 197 198 197-197 43 43-240 239Z"/></svg>
+        <svg class={show ? "flipper flipped" : "flipper"} xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 96 960 960" width="2em"><path fill="rgb(145, 141, 134)" d="M480 711 240 471l43-43 197 198 197-197 43 43-240 239Z"/></svg>
     </div>
     {#if show}
         <div id="options" class="card">
