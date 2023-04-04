@@ -5,17 +5,17 @@ const DATE_PROPS = ["date_of_birth", "date_of_death"]
 const DEFAULT_COUNT = 10;
 
 export type Bird = {
-    [key: string]: number | string | boolean | undefined;
+    [key: string]: number | string | boolean | Date | null | undefined;
     id: number;
     band_num?: string;
     owner_id?: number;
     male?: boolean;
-    date_of_birth?: string;
-    date_of_death?: string;
+    date_of_birth?: Date;
+    date_of_death?: Date;
     nick?: string;
     notes?: string;
-    father_id?: number;
-    mother_id?: number;
+    father_id?: number | null;
+    mother_id?: number | null;
 }
 
 export async function loadBird(id:number): Promise<Bird | null> {
@@ -43,6 +43,8 @@ export async function searchBirds(args:any): Promise<Bird[]> {
             query = query.ilike(property, "%" + args[property] + "%");
         } else if (property === "count") {
             query = query.limit(args["count"]);
+        } else if (property[0] === "!") {
+            query = query.neq(property.slice(1), args[property]);
         } else {
             query = query.eq(property, args[property]);
         }
@@ -57,16 +59,34 @@ export async function searchBirds(args:any): Promise<Bird[]> {
     return birds as Bird[];
 }
 
-export async function postBird(bird:Bird) {
+// cleans Bird object for insertion into DB
+// for example, Dates === "" => undefined
+function cleanBird(bird:Bird) {
+    let result = structuredClone(bird)
     for (const date_prop of DATE_PROPS) {
-        if (Object.hasOwn(bird, date_prop) && bird[date_prop] === "") {
-            delete bird[date_prop];
+        if (Object.hasOwn(result, date_prop) && result[date_prop] === "") {
+            delete result[date_prop];
         }
     }
-    let query = supabase.from("bird").insert([bird]);
+    return result;
+}
+
+export async function postBird(bird:Bird) {
+    let cleaned = cleanBird(bird);
+    let query = supabase.from("bird").insert([cleaned]);
     const {data, error} = await query;
     if (error) {
         console.error(error);
     }
     // TODO: update application birds after a new one is created
+}
+
+export async function updateBird(bird:Bird):Promise<boolean> {
+    let query = supabase.from("bird").update(cleanBird(bird)).eq("id", bird.id);
+    const {data, error} = await query;
+    if (error) {
+        console.error(error);
+        return false;
+    }
+    return true;
 }

@@ -3,7 +3,7 @@
 	import BirdName from "./BirdName.svelte";
     import Loading from "./Loading.svelte";
 
-    export let id:number;
+    export let id:number|null|undefined;
     // TODO: recursion
     export let recursion_level:number;
 
@@ -40,23 +40,29 @@
     }
 </style>
 
-{#await loadBird(id)}
-    <Loading/>
-{:then bird}
-    {#if bird != null}
-        <div class={bird.male ? "bird male" : "bird female"}>
-            <BirdName {bird}/>
-            <p>{lifetimeString(bird.date_of_birth, bird.date_of_death)}</p>
-            {#if recursion_level > 0}
-                <div id="parents">
-                    <svelte:self id={bird.father_id} recursion_level={recursion_level - 1}/>
-                    <svelte:self id={bird.mother_id} recursion_level={recursion_level - 1}/>
-                </div>
-            {/if}
+{#if id}
+    {#await loadBird(id)}
+        <Loading/>
+    {:then bird}
+        {#if bird != null}
+            <div class={bird.male ? "bird male" : "bird female"}>
+                <BirdName {bird}/>
+                <p>{lifetimeString(bird.date_of_birth, bird.date_of_death)}</p>
+                {#if recursion_level > 0}
+                    <div id="parents">
+                        {#if bird.father_id}
+                            <svelte:self id={bird.father_id} recursion_level={recursion_level - 1}/>
+                        {/if}
+                        {#if bird.mother_id}
+                            <svelte:self id={bird.mother_id} recursion_level={recursion_level - 1}/>
+                        {/if}
+                    </div>
+                {/if}
+            </div>
+        {/if}
+    {:catch error}
+        <div class="bird">
+            <p>Error: {error.message}</p>
         </div>
+    {/await}
     {/if}
-{:catch error}
-    <div class="bird">
-        <p>Error: {error.message}</p>
-    </div>
-{/await}

@@ -21,8 +21,12 @@
         min-height: calc(100vh - 4em);
     }
 
-    :global(input) {
+    :global(input, textarea) {
         font-family:  'Merriweather', 'Arial';
+    }
+    
+    :global(textarea) {
+        padding: 0.4em;
     }
 
     :global(body) {
@@ -51,6 +55,14 @@
         display: flex;
         flex-direction: column;
         gap: 1em;
+    }
+
+    :global(.soft-row) {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1em;
+        width: 100%;
     }
     
     :global(.hidden) {

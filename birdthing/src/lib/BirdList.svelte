@@ -97,9 +97,14 @@
         border-radius: 0 0 0 var(--main-radius);
     }
 
+    #search-card {
+        flex: 1 1 auto;
+    }
+
     .searchbox {
         border: none;
         height: 100%;
+        width: 100%;
         border-radius: var(--main-radius);
         box-sizing: border-box;
         font-size: 1em;
@@ -117,7 +122,7 @@
         <Checkboxes items={Object.keys(OPTIONAL_COLUMNS)} bind:selected={selected_columns}>
             <p slot="label">Show Columns</p>
         </Checkboxes>
-        <div class="card">
+        <div class="card" id="search-card">
             <input
                 class="searchbox"
                 type="text"
