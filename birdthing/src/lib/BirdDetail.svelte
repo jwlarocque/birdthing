@@ -5,7 +5,7 @@
 
     import BirdPeek from "./BirdPeek.svelte";
     import BirdName from "./BirdName.svelte";
-    import { loadBird, searchBirds, updateBird, type Bird } from "./bird";
+    import { loadBird, loadFamily, searchBirds, updateBird, type Bird } from "./bird";
 	import Loading from "./Loading.svelte";
     import SelectBirdName from "./SelectBirdName.svelte";
 	import FamilyTree from "./svelte-family-tree/FamilyTree.svelte";
@@ -374,10 +374,14 @@
                         {#if bird.father_id == null && bird.mother_id == null}
                             <p>Unknown</p>
                         {:else}
-                            <BirdPeek id={bird.father_id} recursion_level={parent_depth - 1}/>
-                            <BirdPeek id={bird.mother_id} recursion_level={parent_depth - 1}/>
+                            {#await loadFamily(bird.id)}
+                                <Loading/>
+                            {:then tree}
+                                <FamilyTree tree={tree}/>
+                            {/await}
                         {/if}
                     </div>
+                {/if}
             </section>
         {:else}
             <Loading/>
