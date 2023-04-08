@@ -122,12 +122,19 @@
         color: var(--section-header-light);
     }
 
-    .editable {
+    .miniinfo {
+        display: grid;
+        grid-template-columns: repeat(2, max-content);
+    }
+
+    .miniinfo > * {
+        margin: 0.4em;
         display: flex;
-        flex-direction: row;
         align-items: center;
-        height: 1.6em;
-        gap: 0.4em;
+    }
+
+    .miniinfo > *:nth-child(2n - 1) {
+        margin: 0;
     }
     
     #name {
@@ -266,46 +273,46 @@
                     {/if}
                 </div>
             </div>
-            <div class="editable">
-                <span class="miniheader">Born: </span>
+            <div class="miniinfo">
+                <span class="miniheader">Born:</span>
                 {#if editing}
+                    <!-- TODO: a way to clear these date (died as well) -->
                     <input type="date" class="date" bind:value={phantom.date_of_birth}/>
                 {:else}
                     <span class="date">{bird.date_of_birth ? bird.date_of_birth : "unknown"}</span>
                 {/if}
-            </div>
-            <div class="editable">
                 <span class="miniheader">Died: </span>
                 {#if editing}
                     <input type="date" class="date" bind:value={phantom.date_of_death}/>
                 {:else}
                     <span class="date">{bird.date_of_death ? bird.date_of_death : ""}</span>
                 {/if}
-            </div>
-            <div class="editable">
                 <span class="miniheader">Sex: </span>
                 {#if editing}
+                    <!-- TODO: better styling -->
                     <div>
-                        <input
-                            type="radio"
-                            name="male"
-                            value="true"
-                            required
-                            bind:group={male_group}
-                            on:change={updatePhantomFromMaleGroup}
-                        />
-                        <label for="male">Male</label>
-                    </div>
-                    <div>
-                        <input
-                            type="radio"
-                            name="male"
-                            value="false"
-                            required
-                            bind:group={male_group}
-                            on:change={updatePhantomFromMaleGroup}
-                        />
-                        <label for="female">Female</label>
+                        <div>
+                            <input
+                                type="radio"
+                                name="male"
+                                value="true"
+                                required
+                                bind:group={male_group}
+                                on:change={updatePhantomFromMaleGroup}
+                            />
+                            <label for="male">Male</label>
+                        </div>
+                        <div>
+                            <input
+                                type="radio"
+                                name="male"
+                                value="false"
+                                required
+                                bind:group={male_group}
+                                on:change={updatePhantomFromMaleGroup}
+                            />
+                            <label for="female">Female</label>
+                        </div>
                     </div>
                 {:else}
                     <span>{bird.male != null ? bird.male ? "Male" : "Female" : "Unknown"}</span>
