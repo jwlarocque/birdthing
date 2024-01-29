@@ -6,7 +6,6 @@
     export let editing = false;
 
     $: birdPath = `/birds/${bird.id}`
-    $: console.log(birdPath);
 
 </script>
 

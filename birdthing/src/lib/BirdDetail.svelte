@@ -1,47 +1,59 @@
 <script lang="ts">
 	import { error } from "@sveltejs/kit";
+    import { createEventDispatcher, onMount } from "svelte";
 
 	import Select from "svelte-select";
 
     import BirdPeek from "./BirdPeek.svelte";
     import BirdName from "./BirdName.svelte";
-    import { loadBird, loadFamily, searchBirds, updateBird, type Bird } from "./bird";
+    import { loadBird, constructFamily, searchBirds, updateBird, deleteBird, type Bird } from "./bird";
 	import Loading from "./Loading.svelte";
     import SelectBirdName from "./SelectBirdName.svelte";
 	import FamilyTree from "./svelte-family-tree/FamilyTree.svelte";
+	import Dialogue from "./Dialogue.svelte";
 
 
     let bird:Bird|null;
     $: birdPath = bird ? `/birds/${bird.id}` : "";
-    export let selectedId:number|null = null;
+    export let selectedId:string|null = null;
     $: retrieveBird(selectedId)
     export let editable = true;
     export let link = true;
+
+    const dispatch = createEventDispatcher();
 
     let editing = false;
     let saving = false;
     let saveError;
     let phantom:Bird;
-    let phantom_mother:Bird;
+    let phantom_mother:Bird|null;
     $: updatePhantomParent("mother", phantom_mother);
-    let phantom_father:Bird;
+    let phantom_father:Bird|null;
     $: updatePhantomParent("father", phantom_father);
     let male_group:string; // lol
 
     const parent_depth = 2;
-    // $: if (window) {window.bird = bird;} // TODO: remove debug
 
-    async function retrieveBird(id:number|null) {
+    async function retrieveBird(id:string|null) {
         if (id) {
             bird = await loadBird(id);
+            resetPhantom();
+        }
+    }
+
+    async function deleteBirdRefresh() {
+        if (selectedId) {
+            await deleteBird(selectedId);
+            dispatch("birdDeleted");
+        }
+    }
+
+    function resetPhantom() {
+        if (bird) {
             phantom = structuredClone(bird) as Bird;
             male_group = phantom.male ? "true" : "false";
-            if (phantom.mother_id) {
-                phantom_mother = await loadBird(phantom.mother_id) as Bird;
-            }
-            if (phantom.father_id) {
-                phantom_father = await loadBird(phantom.father_id) as Bird;
-            }
+            phantom_mother = phantom?.mother;
+            phantom_father = phantom?.father;
         }
     }
 
@@ -53,14 +65,13 @@
         }
     }
 
-    function updatePhantomParent(parent:string, candidate:Bird) {
-        if (!phantom) {
-            return;
-        }
+    function updatePhantomParent(parent:string, candidate:Bird|null) {
+        if (!phantom) { return; }
+        if (!candidate) { candidate = null; }
         if (parent === "mother") {
-            phantom.mother_id = candidate ? candidate.id : null;
+            phantom.mother = candidate;
         } else if (parent === "father") {
-            phantom.father_id = candidate ? candidate.id : null;
+            phantom.father = candidate;
         }
     }
 
@@ -68,21 +79,21 @@
         if (saving) {
             return;
         }
-        console.log(phantom);
         saving = true;
         let success = await updateBird(phantom);
         // TODO: show status
         if (success) {
-            bird = phantom;
+            // TODO: awk
+            bird = await loadBird(success.id);
             editing = false;
         }
         saving = false;
     }
 
-    function searchBirdsParent(male:boolean, excludeId:number) {
+    // TODO: duplicates functionality with EditBird; consolidate?
+    function searchBirdsParent(male:boolean, excludeId:string) {
         return function search(options:any) {
-            console.log(options);
-            return searchBirds({"band_num": options, "male": male, "!id": excludeId});
+            return searchBirds({"band_num": options, "male": male, "!id": excludeId}, false);
         }
     }
 
@@ -172,6 +183,15 @@
         gap: 1em;
     }
 
+    .delete {
+        border-color: var(--emph-light);
+    }
+
+    .delete-confirm {
+        background-color: var(--emph-light);
+        color: var(--bg-light);
+    }
+
     #clickable {
         height: 100%;
         display: flex;
@@ -251,7 +271,7 @@
                     </div>
                 {:else}
                     <a id="clickable" title="View in New Tab" href={birdPath}>
-                        <span id="bandnum">{bird.band_num}</span>
+                        <span id="bandnum">{bird.band_num || "<unknown band number>"}</span>
                         <span class="nick">{bird.nick ? "\"" + bird.nick + "\"" : ""}</span>
                     </a>
                 {/if}
@@ -259,8 +279,20 @@
                     {#if editable}
                         {#if editing}
                             <button on:click={savePhantom}><span>Save</span></button>
+                        {:else}
+                            <Dialogue>
+                                <button slot="open" class="delete">Delete</button>
+                                <span slot="title">Confirm Deletion</span>
+                                <span slot="description">
+                                    <span id="bandnum">{bird.band_num || "<unknown band number>"}</span>
+                                    <span class="nick">{bird.nick ? "\"" + bird.nick + "\"" : ""}</span>
+                                    will be permanently deleted.
+                                </span>
+                                <button slot="close">Cancel</button>
+                                <button slot="confirm" class="delete delete-confirm" on:click={deleteBirdRefresh}>Delete</button>
+                            </Dialogue>
                         {/if}
-                        <button on:click={() => editing = !editing}>
+                        <button on:click={() => {editing = !editing; resetPhantom();}}>
                             <!-- <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" viewBox="0 0 48 48" height="1.2em"><path fill="rgb(145, 141, 134)" d="M9 39h2.2l22.15-22.15-2.2-2.2L9 36.8Zm30.7-24.3-6.4-6.4 2.1-2.1q.85-.85 2.1-.85t2.1.85l2.2 2.2q.85.85.85 2.1t-.85 2.1Zm-2.1 2.1L12.4 42H6v-6.4l25.2-25.2Zm-5.35-1.05-1.1-1.1 2.2 2.2Z"/></svg> -->
                             <span>{editing ? "Cancel" : "Edit"}</span>
                         </button>
@@ -279,13 +311,13 @@
                     <!-- TODO: a way to clear these date (died as well) -->
                     <input type="date" class="date" bind:value={phantom.date_of_birth}/>
                 {:else}
-                    <span class="date">{bird.date_of_birth ? bird.date_of_birth : "unknown"}</span>
+                    <span class="date">{bird.date_of_birth ? new Date(bird.date_of_birth).toLocaleDateString() : "unknown"}</span>
                 {/if}
                 <span class="miniheader">Died: </span>
                 {#if editing}
                     <input type="date" class="date" bind:value={phantom.date_of_death}/>
                 {:else}
-                    <span class="date">{bird.date_of_death ? bird.date_of_death : ""}</span>
+                    <span class="date">{bird.date_of_death ? new Date(bird.date_of_death).toLocaleDateString() : ""}</span>
                 {/if}
                 <span class="miniheader">Sex: </span>
                 {#if editing}
@@ -322,7 +354,11 @@
                 <header>Notes:</header>
                 <div class="notes-container">
                     <div class={editing ? "notes hidden" : "notes"}>
-                            <p>{bird.notes || "No notes yet."}</p>
+                            {#if bird.notes}
+                                {@html bird.notes}
+                            {:else}
+                                <p>{"No notes yet."}</p>
+                            {/if}
                     </div>
                     <textarea class={editing ? "notes" : "notes hidden"} bind:value={phantom.notes}/>
                 </div>
@@ -331,12 +367,14 @@
                 <header>Ancestry:</header>
                 {#if editing}
                     <div class="soft-row">
+                        <!-- TODO: duplicates code in EditBird, consolidate or at least use an #each for mother and father -->
                         <div class="parent-select">
                             <span>Father</span>
                             <Select
                                 loadOptions={searchBirdsParent(true, phantom.id)}
                                 itemFilter={itemFilter}
                                 itemId={"id"}
+                                placeholder={"Please Select"}
                                 bind:value={phantom_father}
                             >
                                 <p class="select-item" slot="item" let:item>
@@ -359,6 +397,7 @@
                                 loadOptions={searchBirdsParent(false, phantom.id)}
                                 itemFilter={itemFilter}
                                 itemId={"id"}
+                                placeholder={"Please Select"}
                                 bind:value={phantom_mother}
                             >
                                 <p class="select-item" slot="item" let:item>
@@ -378,13 +417,13 @@
                     </div>
                 {:else}
                     <div id="ancestry">
-                        {#if bird.father_id == null && bird.mother_id == null}
+                        {#if bird.father === null && bird.mother === null}
                             <p>Unknown</p>
                         {:else}
-                            {#await loadFamily(bird.id)}
+                            {#await constructFamily(bird)}
                                 <Loading/>
                             {:then tree}
-                                <FamilyTree tree={tree}/>
+                                <FamilyTree tree={tree} thisRef={null} main={null}/>
                             {/await}
                         {/if}
                     </div>

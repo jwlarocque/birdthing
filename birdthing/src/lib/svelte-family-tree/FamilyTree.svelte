@@ -5,8 +5,8 @@
 
 
     export let tree:TreeNode|null;
-    export let main:HTMLDivElement;
-    export let thisRef:HTMLDivElement;
+    export let main:HTMLDivElement|null;
+    export let thisRef:HTMLDivElement|null;
 
     let mainClientWidth:number;
     let mainClientHeight:number;
@@ -24,6 +24,8 @@
         toContainer:HTMLDivElement,
         to:HTMLDivElement
     ) {
+        // TODO: fix race condition where this tries to draw to canvas before (?) it exists
+        if (!from || !to || !toContainer) { return; }
         let fromCenter = [
             from.offsetLeft + from.clientWidth / 2,
             from.offsetTop + from.clientHeight / 2

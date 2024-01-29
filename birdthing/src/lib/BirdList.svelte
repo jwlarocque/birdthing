@@ -14,7 +14,7 @@
     let uf = new uFuzzy({})
     $: visible = visibleFromSearch(needle);
     let selected:Bird;
-    export let selectedId:Number|null = null;
+    export let selectedId:string|null = null;
     $: selectedId = selected ? selected.id : null;
 
     function visibleFromSearch(needle:string) {
@@ -143,11 +143,11 @@
                 on:click={() => {selected = bird}}
                 on:keypress={() => {selected = bird}}
             >
-                {bird.band_num}
+                {bird.band_num || "<unknown band number>"}
                 {#if bird.nick}
                     <span class="nick">"{bird.nick}"</span>
                 {/if}
-    </div>
+            </div>
             {#each selected_columns as col_name}
                 <p
                     class={selected && bird.id === selected.id ? "selected": ""}
@@ -158,7 +158,11 @@
                 </p>
             {/each}
         {:else}
-            <Loading/>
+            {#if (visible.length == 0)}
+                <p>No Results</p>
+            {:else}
+                <Loading/>
+            {/if}
         {/each}
     </div>
 </div>

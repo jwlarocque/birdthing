@@ -1,27 +1,34 @@
-<script>
-    import Model from 'svelte-simple-modal';
+<script lang="ts">
     import {createForm} from 'felte';
     import Select from 'svelte-select';
     import { searchBirds, postBird } from "./bird";
-	import BirdName from './BirdName.svelte';
-    import SelectBirdName from './SelectBirdName.svelte';
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
 
-    const {form, data} = createForm({
+    const {form, data, reset} = createForm({
         onSubmit: async (values) => {
             await postBird(values);
-            
+            reset();
+            dispatch("birdCreated");
         },
     });
 
-    function handleParentSelection(event, field) {
+    // TODO: event type
+    function handleParentSelection(event:any, field:string) {
         $data[field] = event.detail.id;
     }
 
-    function searchBirdsSex(male) {
-        return function search(options) {
-            console.log(options);
-            return searchBirds({"band_num": options, "male": male});
+    function handleParentClear(field:string) {
+        $data[field] = null;
+    }
+
+    function searchBirdsSex(male:Boolean) {
+        return function search(band_num:string) {
+            if (band_num) {
+                return searchBirds({"band_num": band_num, "male": male}, false);
+            }
+            return searchBirds({"male": male}, false);
         }
     }
 
@@ -158,30 +165,44 @@
             </div>
         </div>
         <div class="soft-row">
+            <!-- TODO: fix issue where top result is select by default (should remain null) -->
+            <!-- TODO: fix issue where it's not possible to remove (and save) a selection -->
+            <!-- TODO: match styling to rest of site -->
             <div class="parent-select">
                 <span>Father</span>
-                <!-- TODO: upgrade to v5 -->
                 <Select
                     loadOptions={searchBirdsSex(true)}
                     itemFilter={itemFilter}
-                    optionIdentifier={"id"}
-                    getSelectionLabel={(option) => option.band_num}
-                    getOptionLabel={(option) => option.band_num}
-                    Item={SelectBirdName}
-                    on:select={(event) => handleParentSelection(event, "father_id")}
-                ></Select>
+                    itemId={"id"}
+                    placeholder={"Please Select"}
+                    on:select={(event) => handleParentSelection(event, "father")}
+                    on:clear={() => handleParentClear("father")}
+                >
+                    <div slot="item" let:item>
+                        {item.band_num + (item.nick ? " " + item.nick : "!")}
+                    </div>
+                    <div slot="selection" let:selection>
+                        {selection.band_num + (selection.nick ? " " + selection.nick : "!")}
+                    </div>
+                </Select>
             </div>
             <div class="parent-select">
                 <span>Mother</span>
                 <Select
                     loadOptions={searchBirdsSex(false)}
                     itemFilter={itemFilter}
-                    optionIdentifier={"id"}
-                    getSelectionLabel={(option) => option.band_num}
-                    getOptionLabel={(option) => option.band_num + (option.nick ? " " + option.nick : "!")}
-                    Item={SelectBirdName}
-                    on:select={(event) => handleParentSelection(event, "mother_id")}
-                ></Select>
+                    itemId={"id"}
+                    placeholder={"Please Select"}
+                    on:select={(event) => handleParentSelection(event, "mother")}
+                    on:clear={() => handleParentClear("mother")}
+                >
+                    <div slot="item" let:item>
+                        {item.band_num + (item.nick ? " " + item.nick : "!")}
+                    </div>
+                    <div slot="selection" let:selection>
+                        {selection.band_num + (selection.nick ? " " + selection.nick : "!")}
+                    </div>
+                </Select>
             </div>
         </div>
         <button type="submit">Create</button>

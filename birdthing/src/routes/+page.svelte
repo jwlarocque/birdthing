@@ -1,9 +1,4 @@
 <script lang="ts">
-    import {fly} from 'svelte/transition';
-    import {flip} from 'svelte/animate';
-
-    import {supabase} from '$lib/supabase.js';
-
     import Loading from '$lib/Loading.svelte';
 
     import BirdDetail from '$lib/BirdDetail.svelte';
@@ -13,9 +8,11 @@
 
     let birds:Bird[] = [];
 
-    let selectedId:number;
+    let selectedId:string;
 
     let showNew = false;
+
+    let getBirds = loadBirds();
 
     async function loadBirds() {
         birds = await searchBirds({});
@@ -53,11 +50,12 @@
 
 <button id="new-bird" class="card" on:click={() => showNew = !showNew}>{showNew ? "Cancel" : "New Bird"}</button>
 {#if showNew}
-    <EditBird/>
+    <!-- TODO: preserve BirdList search when birdCreated -->
+    <EditBird on:birdCreated={() => {getBirds = loadBirds()}}/>
 {/if}
 <div id="main">
     <div id="select">
-        {#await loadBirds()}
+        {#await getBirds}
             <Loading/>
         {:then}
             <!-- TODO: put loading indicator within list/card -->
@@ -67,7 +65,6 @@
         {/await}
     </div>
     <div id="display">
-        <!-- <BirdDetail bind:selectedId/> -->
-        <BirdDetail bind:selectedId/>
+        <BirdDetail bind:selectedId on:birdDeleted={() => {getBirds = loadBirds()}}/>
     </div>
 </div>

@@ -1,3 +1,8 @@
+<script>
+
+	import Nav from "$lib/Nav.svelte";
+
+</script>
 <style>
     :global(:root) {
         --main-radius: 8px;
@@ -11,6 +16,7 @@
         --field-border-light: rgb(216, 219, 223);
         --male-light: rgb(133, 164, 212);
         --female-light: rgb(212, 133, 196);
+        --transparent-light: rgba(82, 82, 82, 0.35);
     }
 
     :global(body, html) {
@@ -104,8 +110,6 @@
     } */
 </style>
 
-<nav>
-    <h1>Birdthing</h1>
-</nav>
+<Nav/>
 
 <slot></slot>
